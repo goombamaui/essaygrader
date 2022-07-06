@@ -1,0 +1,24 @@
+.showSpaces{
+    white-space: pre;
+}
+
+.essayp {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 24px;
+}
+
+.myfilecontainer {
+    height:25vh;
+    max-height:200px;
+}
+
+.myfile {
+    height:100%;
+    width:100%;
+    opacity:0;
+}
+
+.mytext {
+    height:35vh;
+    max-height:300px;
+}

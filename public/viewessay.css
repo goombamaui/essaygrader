@@ -1,0 +1,35 @@
+.showSpaces{
+    white-space: pre-wrap;
+}
+
+.essayp {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 24px;
+}
+
+.myfilecontainer {
+    height:25vh;
+    max-height:200px;
+}
+
+.myfile {
+    height:100%;
+    width:100%;
+    opacity:0;
+}
+
+.mytextcontainer {
+    width:300px;
+}
+
+.essaycont {
+    width:100%;
+    word-spacing:100%;
+    word-wrap:normal;
+    overflow-wrap: break-word;
+}
+
+.sticky-div {
+    position: sticky;
+    padding: 10px 0px;
+}

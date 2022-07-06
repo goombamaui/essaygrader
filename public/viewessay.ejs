@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="viewessay.css">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <title>Essay Grader</title>
+        <div class="container">
+            <h1 class="text-center m-3 p-3">View your grade</h1>
+        </div>
+        <% if(!locals.data){ %>
+            <div class="container">
+                <form class="text-center" id="myform">
+                    <div class="p-0 position-relative mytextcontainer start-50 translate-middle-x">
+                        <label for="mytext" class="form-label">Enter your name:</label>
+                        <input type="text" id="mytext" name="mytext" class="form-control mytext top-50 start-50"></input>
+                        <% if(locals.formerror) { %>
+                            <div id="emailHelp" class="form-text" style="color:red"><%= formerror %></div>
+                        <% } %>
+                        <br>
+                        <input type="submit" class="btn btn-primary">
+                        <br>
+                    </div>
+                </form>
+                <script>
+                    document.getElementById("myform").onsubmit=function(e){
+                        e.preventDefault();
+                        let url=new URL(location.href);
+                        url.searchParams.set("u",document.getElementById("mytext").value);
+                        document.location=window.location.href=url.href;
+                    }
+                </script>
+            </div>
+        <% } else { %>
+            <div class="container">
+                <div class="text-center">
+                    <h3 id="score">Score: <%= data.score %></h3>
+                </div>
+                <div class="text-center sticky-top p-2 bg-white">
+                    <h4 id="feedback">&nbsp;</h4>
+                    <button id="changefeedback" class="btn btn-primary">Change Feedback</button>
+                </div>
+                <br>
+                <div id="resp" class="container essaycont rounded bg-light p-2"></div>
+                <script>
+                    function escapeHTML(str){
+                        return new Option(str).innerHTML;
+                    }
+                    
+                    async function viewEssay(n){
+                        let r=await (await fetch(location.origin+"/g", {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({name:n})
+                        })).json();
+                        parseData(r);
+                    }
+                    function parseData(json){
+                        let data = json;
+                        console.log(data);
+                        let resp=document.getElementById("resp");
+                        document.getElementById("score").textContent=data.score+"%";
+                        parseTokens(data);
+                        focusFeedback("",data)
+                        let current_feedback=-1;
+                        document.getElementById("changefeedback").onclick=function(r){
+                            let fb=data.feedback[++current_feedback];
+                            focusFeedback(fb,data);
+                            document.getElementById("feedback").innerHTML=fb?escapeHTML(fb.description)+"  [ -"+escapeHTML(fb.deduction)+"% ]":"&nbsp;";
+                            if(current_feedback>=data.feedback.length)current_feedback=-1;
+                        }
+                    }
+                    let createP=()=>{let current_para=document.createElement("p");current_para.style.margin="0px";
+                                    current_para.className="essayp"; return current_para}
+                    function parseTokens(data){
+                        let main=document.getElementById("resp");
+                        main.innerHTML="";
+                        let current_para=createP();
+                        for(let i=0;i<data.tokens.length;i++){
+                            let token=data.tokens[i];
+                            token=="\t"&&(main.appendChild(current_para),current_para=createP(),token="    ")
+                            current_para.innerHTML+="<span class=\"showSpaces\" id=\"token-"+i+"\">"+escapeHTML(token)+"</span>"
+                        }
+                        main.appendChild(current_para);
+                    }
+                    function focusFeedback(f,data){
+            
+                        console.log(f);
+                        
+                        if(!f || f.token_start>=data.tokens.length||f.token_end>=data.tokens.length){
+                            return;
+                        }
+                        for(let i=0;i<data.tokens.length;i++){
+                            let t=document.getElementById("token-"+i)
+                            if(f.token_start<=i && i<=f.token_end){
+                                t.style.fontWeight="normal";
+                                t.style.backgroundColor="yellow";
+                            } else {
+                                t.style.fontWeight="normal";
+                                t.style.backgroundColor="transparent";
+                            }                            
+                        }
+                        document.getElementById("token-"+f.token_start).scrollIntoView({block:"center"});
+                    }
+                </script>
+                <script>
+                    parseData(<%-JSON.stringify(data)%>);
+                </script>
+            </div>
+        <% } %>
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    </body>
+    
+</html>
