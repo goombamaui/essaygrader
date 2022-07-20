@@ -22,7 +22,6 @@ app.post('/',async (req, res) => {
         switch(e.mimetype){
             case 'application/pdf':
                 tastystring=await getTextFromPDFBuffer(e.data);
-                console.log(tastystring.match("\n").length)
                 tastystring.replace("\n","");
                 console.log(tastystring)
                 break;
