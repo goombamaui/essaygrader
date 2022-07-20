@@ -1,19 +1,20 @@
 import Correction from "./Correction";
 import {Essay, Token} from "./Tokenizer";
-const words:string[] = require("an-array-of-english-words");
+const baseWords:string[] = require("an-array-of-english-words");
+const otherWords:string[] = ["s"];
 
 function binarysearch(w:string){
-    let s=0,e=words.length-1,m=0;
+    let s=0,e=baseWords.length-1,m=0;
     while(s<=e){
         m=Math.floor((s+e)/2);
-        if(w<words[m])
+        if(w<baseWords[m])
             e=m-1;
-        else if (w>words[m])
+        else if (w>baseWords[m])
             s=m+1;
         else
             return true;
     }
-    return false;
+    return otherWords.indexOf(w)>-1;
 }
 
 
@@ -32,7 +33,7 @@ export default class Grader{
         e.words.forEach(l=>{
             w=l.tok;
             this.nastynonos.indexOf(w.toLowerCase())>=0 && ding("nasty nono", 1, Correction.TokenSelection,l.position);
-            !binarysearch(w.toLowerCase()) && ding("not a word (contractions aren't words)",1,Correction.TokenSelection,l.position);
+            !binarysearch(w.toLowerCase()) && w[0].toUpperCase()!=w[0] && ding("not a word (contractions aren't words)",1,Correction.TokenSelection,l.position);
         })
         let prevStarts:string[] = [];
         let ind=0;
