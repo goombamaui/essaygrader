@@ -10,10 +10,20 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 const StudentSchema = new Schema({
     name:{type:String,unique:true},
+    token:String,
     essay:String,
     grade:Number,
     feedback:Object,
     tokens:Object
 })
 
-export default model("StudentModel", StudentSchema)
+export interface Student {
+    name:string,
+    token:string,
+    essay:string,
+    grade:number,
+    feedback:any,
+    tokens:any
+}
+
+export default model<Student>("StudentModel", StudentSchema)

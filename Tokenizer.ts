@@ -6,8 +6,8 @@ export class Essay {
     tokens:Token[];
     words:Token[];
     sentences:Sentence[];
-    constructor(st:string){
-        this.tokens=new Tokenizer(st).tokenize();
+    constructor(st:string, options?:TokenOptions){
+        this.tokens=new Tokenizer(st).tokenize(options);
         this.words=this.tokens.filter(k=>k.type==Token.Word);
         this.paragraphs=new EssayParser(this.tokens).parse();
         this.sentences=[];
@@ -51,13 +51,15 @@ class Sentence {
  */
 export class Token {
     static Word = Symbol("Word");
-    static WhiteSpace = Symbol("WhiteSpace");
+    static Space = Symbol("Space");
+    static LineSpace = Symbol("LineSpace");
     static PhraseEnd = Symbol("PhraseEnd");
     static SentenceEnd = Symbol("SentenceEnd");
     static ParagraphEnd = Symbol("ParagraphEnd");
     static EssayEnd = Symbol("EssayEnd");
     static Unknown = Symbol("Unknown");
     static None = Symbol("None");
+    static Number = Symbol("Number");
 
     static SentenceTerminators=[Token.SentenceEnd,Token.ParagraphEnd,Token.EssayEnd]
     static ParagraphTerminators=[Token.ParagraphEnd,Token.EssayEnd]
@@ -98,10 +100,14 @@ class Tokenizer {
         let tok:Token=new Token("",Token.None),curr="",type=Token.None;
         while(!this.finished){
             curr=this.currchar;
-            if((/[a-zA-Z'\-\d]/).test(curr)){
+            if((/[a-zA-Z\-]/).test(curr)){
                 type=Token.Word;
-            } else if ((/(\n\r|\n|\r| )/).test(curr)){
-                type=Token.WhiteSpace;
+            } else if ((/[\d]/).test(curr)){
+                type=Token.Number;
+            } else if ((/ /).test(curr)){
+                type=Token.Space;
+            } else if ((/\n/).test(curr)){
+                type=Token.LineSpace
             } else if ((/[,;]/).test(curr)){
                 type=Token.PhraseEnd
             } else if ((/[.!?]/).test(curr)){
@@ -123,20 +129,44 @@ class Tokenizer {
         }
         return tok;
     }
-    tokenize(){
-        let tokens:Token[]=[],tok:Token=this.nextToken();
+    tokenize(tokop?:TokenOptions){
+        let tokens:Token[]=[],tok:Token=this.nextToken(),options:TokenOptions=parseTokenOptions(tokop);
         let current=0;
         while(tok.type!=Token.EssayEnd){
-            //console.log(tok);
             tokens.push(tok);
             tok.position=current++;
             tok=this.nextToken();
         }
         tokens.push(tok);
         tok.position=current;
+        if(options.removeRandomLineBreaks){
+            for(let i=0;i<tokens.length;i++){
+                tokens[i].position=i;
+                if(i<tokens.length-1&&tokens[i].type==Token.LineSpace&&tokens[i+1].type!=Token.ParagraphEnd){
+                    tokens[i].type=Token.Space;
+                    tokens[i].tok=" ";
+                    i--;
+                }
+            }
+        }
         return tokens;
     }
 }
+/**
+ * TokenOptions are options for tokenizer
+ */
+export interface TokenOptions {
+    removeRandomLineBreaks?:boolean
+}
+
+function parseTokenOptions(t?:TokenOptions){
+    t=t||{};
+    return {
+        removeRandomLineBreaks:false,
+        ...t
+    }
+}
+
 /**
  * Essay Parser converts tokens into a paragraphs which contain sentences which contain tokens
  */
