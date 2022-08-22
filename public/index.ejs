@@ -73,7 +73,9 @@
                         method:'POST',
                         body:formData
                     }))
-                    if(data.status==200)location.href=location.origin+"/view?u="+encodeURIComponent(name);
+                    if(data.status==200)setTimeout(function(){
+                        location.href=location.origin+"/view?u="+encodeURIComponent(name)
+                    },1000);
                 }
             
             </script>
